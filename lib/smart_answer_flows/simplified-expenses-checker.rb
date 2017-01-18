@@ -6,20 +6,12 @@ module SmartAnswer
       status :published
       satisfies_need "100119"
 
-      #Q1 - new or existing business
-      multiple_choice :claimed_expenses_for_current_business? do
-        option :yes
-        option :no
-
-        save_input_as :new_or_existing_business
-
-        calculate :is_new_business do
-          new_or_existing_business == "no"
-        end
-
-        calculate :is_existing_business do
-          !is_new_business
-        end
+      #Q1 - type of expense
+      checkbox_question :type_of_expense? do
+        option :car_or_van
+        option :motorcycle
+        option :using_home_for_business
+        option :live_on_business_premises
 
         calculate :capital_allowance_claimed do
           nil
@@ -51,19 +43,6 @@ module SmartAnswer
         calculate :simple_home_costs do
           nil
         end
-
-        next_node do
-          question :type_of_expense?
-        end
-      end
-
-      #Q2 - type of expense
-      checkbox_question :type_of_expense? do
-        option :car_or_van
-        option :motorcycle
-        option :using_home_for_business
-        option :live_on_business_premises
-
         calculate :list_of_expenses do |response|
           response == "none" ? [] : response.split(",")
         end
@@ -85,7 +64,7 @@ module SmartAnswer
         end
       end
 
-      #Q3 - buying new vehicle?
+      #Q2 - buying new vehicle?
       multiple_choice :buying_new_vehicle? do
         option :yes
         option :no
@@ -94,21 +73,17 @@ module SmartAnswer
           if response == "yes"
             question :is_vehicle_green?
           else
-            if is_existing_business
-              question :capital_allowances?
-            else
-              question :how_much_expect_to_claim?
-            end
+            question :capital_allowances?
           end
         end
       end
 
-      #Q4 - capital allowances claimed?
-      # if yes => go to Result 3 if in Q2 only [car_van] and/or [motorcylce] was selected
+      #Q3 - capital allowances claimed?
+      # if yes => go to Result 3 if in Q1 only [car_van] and/or [motorcylce] was selected
       #
-      # if yes and other expenses apart from cars and/or motorbikes selected in Q2 store as capital_allowance_claimed and add text to result (see result 2) and go to questions for other expenses, ie don’t go to Q5 & Q9
+      # if yes and other expenses apart from cars and/or motorbikes selected in Q1 store as capital_allowance_claimed and add text to result (see result 2) and go to questions for other expenses, ie don’t go to Q4 & Q8
       #
-      # if no go to Q5
+      # if no go to Q4
       multiple_choice :capital_allowances? do
         option :yes
         option :no
@@ -136,7 +111,7 @@ module SmartAnswer
         end
       end
 
-      #Q5 - claim vehicle expenses
+      #Q4 - claim vehicle expenses
       money_question :how_much_expect_to_claim? do
         save_input_as :vehicle_costs
 
@@ -149,7 +124,7 @@ module SmartAnswer
         end
       end
 
-      #Q6 - is vehicle green?
+      #Q5 - is vehicle green?
       multiple_choice :is_vehicle_green? do
         option :yes
         option :no
@@ -163,7 +138,7 @@ module SmartAnswer
         end
       end
 
-      #Q7 - price of vehicle
+      #Q6 - price of vehicle
       money_question :price_of_vehicle? do
         # if green => take user input and store as [green_cost]
         # if dirty  => take 18% of user input and store as [dirty_cost]
@@ -187,7 +162,7 @@ module SmartAnswer
         end
       end
 
-      #Q8 - vehicle private use time
+      #Q7 - vehicle private use time
       value_question :vehicle_business_use_time?, parse: :to_f do
         # deduct percentage amount from [green_cost] or [dirty_cost] and store as [green_write_off] or [dirty_write_off]
         calculate :business_use_percent do |response|
@@ -211,7 +186,7 @@ module SmartAnswer
         end
       end
 
-      #Q9 - miles to drive for business car_or_van
+      #Q8 - miles to drive for business car_or_van
       value_question :drive_business_miles_car_van? do
         # Calculation:
         # [user input 1-10,000] x 0.45
@@ -239,7 +214,7 @@ module SmartAnswer
         end
       end
 
-      #Q10 - miles to drive for business motorcycle
+      #Q9 - miles to drive for business motorcycle
       value_question :drive_business_miles_motorcycle? do
         calculate :simple_motorcycle_costs do |response|
           Money.new(response.delete(",").to_f * 0.24)
@@ -256,7 +231,7 @@ module SmartAnswer
         end
       end
 
-      #Q11 - hours for home work
+      #Q10 - hours for home work
       value_question :hours_work_home? do
         calculate :hours_worked_home do |response|
           response.delete(",").to_f
@@ -284,7 +259,7 @@ module SmartAnswer
         end
       end
 
-      #Q12 - how much do you claim?
+      #Q11 - how much do you claim?
       money_question :current_claim_amount_home? do
         save_input_as :home_costs
 
@@ -293,7 +268,7 @@ module SmartAnswer
         end
       end
 
-      #Q13 = how much do you deduct from premises for private use?
+      #Q12 = how much do you deduct from premises for private use?
       money_question :deduct_from_premises? do
         save_input_as :business_premises_cost
 
@@ -302,7 +277,7 @@ module SmartAnswer
         end
       end
 
-      #Q14 - people who live on business premises?
+      #Q13 - people who live on business premises?
       value_question :people_live_on_premises?, parse: :to_i do
         calculate :live_on_premises do |response|
           response
