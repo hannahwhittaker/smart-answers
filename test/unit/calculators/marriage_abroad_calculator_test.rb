@@ -863,7 +863,7 @@ module SmartAnswer
       context '#cni_posted_after_14_days?' do
         should 'return true if ceremony country will post notice after 14 days' do
           calculator = MarriageAbroadCalculator.new
-          calculator.ceremony_country = 'jordan'
+          calculator.ceremony_country = 'qatar'
 
           assert calculator.cni_posted_after_14_days?
         end
@@ -1019,7 +1019,7 @@ module SmartAnswer
         end
 
         should 'return true if a PACS is available in the ceremony country' do
-          @calculator.ceremony_country = 'france'
+          @calculator.ceremony_country = 'monaco'
           assert @calculator.ceremony_country_offers_pacs?
         end
 
@@ -1041,7 +1041,7 @@ module SmartAnswer
         end
 
         should "return false if PACS is available in the ceremony country but it's not a French overseas territory" do
-          @calculator.ceremony_country = 'france'
+          @calculator.ceremony_country = 'monaco'
           assert @calculator.ceremony_country_offers_pacs?
           refute @calculator.french_overseas_territory_offering_pacs?
         end
@@ -1082,6 +1082,15 @@ module SmartAnswer
           @calculator.ceremony_country = 'italy'
 
           assert_equal true, @calculator.has_outcome_per_path?
+        end
+      end
+
+      context '#two_questions_country? ' do
+        should 'return true if country has two questions' do
+          @calculator = MarriageAbroadCalculator.new
+          @calculator.ceremony_country = 'italy'
+
+          assert_equal true, @calculator.two_questions_country?
         end
       end
     end
